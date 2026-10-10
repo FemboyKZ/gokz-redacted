@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup SourcePawn Compiler
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: "1.12"
+
+      - name: Compile plugin
+        run: |
+          mkdir -p addons/sourcemod/plugins
+          spcomp addons/sourcemod/scripting/gokz-redacted.sp -o addons/sourcemod/plugins/gokz-redacted.smx
+
+      - name: Collect package
+        run: |
+          mkdir package
+          cp -r addons materials models package/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: gokz-redacted
+          path: package
+
+      - name: Compress package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: zip -9rq ../gokz-redacted.zip *
+        working-directory: package
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: gokz-redacted.zip
