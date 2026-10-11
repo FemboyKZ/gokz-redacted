@@ -305,7 +305,7 @@ def fmt(values):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for map_dir in sorted(SORTED.iterdir()):
+    for map_dir in sorted(p for p in SORTED.iterdir() if p.is_dir()):
         mats = xxx_materials(map_dir)
         if not mats:
             continue

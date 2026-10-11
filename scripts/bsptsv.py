@@ -7,12 +7,14 @@ Stands alone: needs only srctools. Maps that fail to parse are named on stderr.
 
 import csv
 import glob
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 from srctools.bsp import BSP
 from srctools.filesys import ZipFileSystem
+from srctools.tokenizer import TokenSyntaxError
 from srctools.vmt import Material
 
 TEX_PARAMS = ("$basetexture", "$basetexture2")
@@ -27,6 +29,13 @@ HEADER = [
 
 
 class PakFS(ZipFileSystem):
+    def __init__(self, path, zipfile):
+        super().__init__(path, zipfile)
+        # Off Windows, zipfile keeps backslashes in entry names, which lookups never match.
+        self._name_to_info = {
+            name.replace("\\", "/"): info for name, info in self._name_to_info.items()
+        }
+
     # Packed VMTs can hold cp1252 bytes; latin-1 always decodes.
     def open_str(self, name, encoding="utf8"):
         return super().open_str(name, "latin-1")
@@ -42,13 +51,29 @@ def basetextures(mat_name, pak_names, fsys):
     if path is None:
         return None
     with fsys.open_str(path) as f:
-        mat = Material.parse(f, path)
+        text = f.read()
     try:
-        mat = mat.apply_patches(fsys)
+        mat = Material.parse(text, path).apply_patches(fsys)
     except ValueError:
         # Patches a stock material: no packed image.
         return []
+    except TokenSyntaxError:
+        return salvage(text, pak_names, fsys)
     return [f"materials/{norm(mat[p])}.vtf" for p in TEX_PARAMS if p in mat]
+
+
+def salvage(text, pak_names, fsys):
+    """Textures of a VMT too malformed for srctools; the game reads such files anyway."""
+    text = re.sub(r"//.*", "", text)
+
+    def value(key):
+        found = re.search(rf'"?{re.escape(key)}"?\s+(?:"([^"\n]*)"|(\S+))', text, re.I)
+        return found and norm(found[1] or found[2])
+
+    include = value("include")
+    if include:
+        return basetextures(include[len("materials/") : -4], pak_names, fsys) or []
+    return [f"materials/{value(p)}.vtf" for p in TEX_PARAMS if value(p)]
 
 
 def usage(bsp):
