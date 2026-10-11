@@ -26,7 +26,7 @@ from srctools import Vec
 from srctools.bsp import BSP
 from srctools.vmt import Material
 
-from scripts.bsptex import PakFS, norm
+from scripts.bsptsv import PakFS, norm
 
 SORTED = Path("scripts/out")
 OUT = Path("addons/sourcemod/configs/gokz-redacted")
