@@ -9,7 +9,7 @@ public Plugin myinfo =
     name        = "GOKZ Redacted",
     author      = "jvnipers",
     description = "Covers explicit images on maps with black panels",
-    version     = "1.0.1",
+    version     = "1.0.2",
     url         = "https://github.com/FemboyKZ/gokz-redacted"
 };
 
