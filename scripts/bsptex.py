@@ -3,8 +3,8 @@
     python -m scripts.bsptex maps/*.bsp   (from the repo root)
         ->   scripts/out/<map>/textures.tsv, scripts/out/<map>/img/*.png
 
-Sort the thumbnails into img/xxx and img/fine for bspcover.py,
-then move the map's folder into scripts/out/checked/. A rerun leaves sorted ones in place.
+Sort the thumbnails into img/xxx and img/fine, then move the map's folder into scripts/out/checked/.
+A rerun leaves sorted ones in place.
 
 Thumbnails are named "<usage>,<vtf path with ',' for '/'>.png", '%' ',' ';'
 %XX-escaped, plus a ";frames" sheet for animated textures.

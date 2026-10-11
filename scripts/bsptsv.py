@@ -2,7 +2,7 @@
 
     python bsptsv.py maps/*.bsp > textures.tsv
 
-Stands alone: needs only srctools. Maps that fail to parse are named on stderr.
+Stands alone: needs only srctools.
 """
 
 import csv
@@ -31,7 +31,7 @@ HEADER = [
 class PakFS(ZipFileSystem):
     def __init__(self, path, zipfile):
         super().__init__(path, zipfile)
-        # Off Windows, zipfile keeps backslashes in entry names, which lookups never match.
+        # Off Windows zipfile keeps backslashes in names, which lookups never match.
         self._name_to_info = {
             name.replace("\\", "/"): info for name, info in self._name_to_info.items()
         }
@@ -63,7 +63,7 @@ def basetextures(mat_name, pak_names, fsys):
 
 
 def salvage(text, pak_names, fsys):
-    """Textures of a VMT too malformed for srctools; the game reads such files anyway."""
+    """Textures of a VMT srctools rejects; the game reads such files anyway."""
     text = re.sub(r"//.*", "", text)
 
     def value(key):
@@ -146,7 +146,6 @@ if __name__ == "__main__":
         try:
             rows, _ = usage(BSP(p))
         except Exception as exc:
-            # One unreadable map must not end a run over a whole maps folder.
             print(f"{p}: {exc}", file=sys.stderr)
             continue
         out.writerows([Path(p).stem] + row for row in rows)

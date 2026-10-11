@@ -30,7 +30,7 @@ from scripts.bsptsv import PakFS, norm
 
 SORTED = Path("scripts/out")
 OUT = Path("addons/sourcemod/configs/gokz-redacted")
-# Narrower surfaces are brush edges.
+# Narrower surfaces are brush edges, unless that is all a material has.
 MIN_SIDE = 4
 # Share of its bounding rectangle a surface must fill to count as one.
 FILL = 0.98
@@ -94,10 +94,11 @@ def rect(polys, normal):
     best = None
     for poly in polys:
         for a, b in zip(poly, poly[1:] + poly[:1]):
-            if (b - a).mag() < 0.01:
+            # The smallest one has a side along an edge. Flattened: grouped faces are not always level.
+            u = (b - a) - normal * Vec.dot(b - a, normal)
+            if u.mag() < 0.01:
                 continue
-            # The smallest one always has a side along an edge.
-            u = (b - a).norm()
+            u = u.norm()
             v = Vec.cross(normal, u)
             us = [Vec.dot(p, u) for p in pts]
             vs = [Vec.dot(p, v) for p in pts]
@@ -116,7 +117,9 @@ def rect(polys, normal):
     )
     up = v if v.z >= 0 else -v
     left = Vec.cross(up, normal)
-    return origin, (normal, left, up), width, height, sum(map(area, polys)) / size
+    # A surface squashed to a line has no area.
+    fill = sum(map(area, polys)) / size if size else 0
+    return origin, (normal, left, up), width, height, fill
 
 
 def angles(forward, left, up):
@@ -305,7 +308,6 @@ def fmt(values):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    # A map's folder sits in scripts/out while being sorted, then in checked/.
     tables = [*SORTED.glob("*/textures.tsv"), *SORTED.glob("checked/*/textures.tsv")]
     for map_dir in sorted((t.parent for t in tables), key=lambda p: p.name):
         mats = xxx_materials(map_dir)
@@ -321,10 +323,12 @@ def main():
         surfaces, walls = covers(bsp, mats)
         see_through = translucent(bsp, mats)
         overlay_mats = {norm(over.texture.mat) for over in bsp.overlays}
-        for cover in surfaces:
+        narrow = [min(rect(c[2], c[3])[2:4]) < MIN_SIDE for c in surfaces]
+        # On small-scale maps a whole picture can be this narrow.
+        wide = {c[0] for c, thin in zip(surfaces, narrow) if not thin}
+        for cover, thin in zip(surfaces, narrow):
             notes["surfaces"] += 1
-            _, _, width, height, _ = rect(cover[2], cover[3])
-            if min(width, height) < MIN_SIDE:
+            if thin and cover[0] in wide:
                 notes["slivers dropped"] += 1
             else:
                 found.append(cover)
