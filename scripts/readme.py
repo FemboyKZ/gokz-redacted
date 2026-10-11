@@ -22,14 +22,22 @@ README = Path("README.md")
 # Re-saved copies differ by under 10 bits, unrelated pictures by over 40.
 SAME = 10
 MB = 1 << 20
+# Figure space: as wide as a digit, and not collapsed when the table is rendered.
+PAD = "\u2007"
 
-LEGEND = "Repeats: pictures another listed map has too. Wasted: explicit textures / whole map."
+LEGEND = "Repeats: pictures another listed map has too.\nWasted: explicit textures / whole map."
 
 
 def look(png):
     """Gradient hash: one bit per pixel brighter than its right-hand neighbour."""
     px = list(Image.open(png).convert("L").resize((17, 16)).getdata())
     return sum(1 << i for i in range(256) if px[i + i // 16] > px[i + i // 16 + 1])
+
+
+def column(values, spec):
+    """Format numbers to one width, so they line up in source and rendered."""
+    texts = [format(v, spec) for v in values]
+    return [t.rjust(max(map(len, texts)), PAD) for t in texts]
 
 
 def main():
@@ -69,28 +77,38 @@ def main():
     groups = [find(i) for i in range(len(pics))]
     maps_with = Counter(g for g, _ in {(g, pic[0]) for g, pic in zip(groups, pics)})
 
-    rows = []
+    counts, repeats, wasted = [], [], []
     for name in bsp_size:
         mine = [g for g, pic in zip(groups, pics) if pic[0] == name]
-        used = sum(pic[2] for pic in pics if pic[0] == name)
-        rows.append(
+        counts.append(len(mine))
+        repeats.append(sum(1 for g in set(mine) if maps_with[g] > 1))
+        wasted.append(sum(pic[2] for pic in pics if pic[0] == name))
+    sizes = list(bsp_size.values())
+    rows = list(
+        zip(
+            bsp_size,
+            column(counts, "d"),
+            column(repeats, "d"),
             (
-                name,
-                str(len(mine)),
-                str(sum(1 for g in set(mine) if maps_with[g] > 1)),
-                f"{used / MB:.1f} / {bsp_size[name] / MB:.1f} MB",
-            )
+                f"{w} / {s} MB ({p}%)"
+                for w, s, p in zip(
+                    column([w / MB for w in wasted], ".1f"),
+                    column([s / MB for s in sizes], ".1f"),
+                    column([100 * w / s for w, s in zip(wasted, sizes)], ".1f"),
+                )
+            ),
         )
+    )
 
     head = ("Map Name", "Count", "Repeats", "Wasted")
     widths = [max(len(row[i]) for row in [head, *rows]) for i in range(len(head))]
     table = [head, tuple("-" * w for w in widths), *rows]
-    used = sum(pic[2] for pic in pics)
     body = [
         "## Maps",
         "",
         f"Total: {len(pics)} textures, {len(set(groups))} unique images, "
-        f"{used / MB:.0f} / {sum(bsp_size.values()) / MB:.0f} MB wasted",
+        f"{sum(wasted) / MB:.0f} / {sum(sizes) / MB:.0f} MB wasted "
+        f"({100 * sum(wasted) / sum(sizes):.1f}%)",
         "",
         LEGEND,
         "",
