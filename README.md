@@ -13,6 +13,7 @@ Total: 1652 textures, 1611 unique images
 | kz_cf_hestia          | 74    |
 | kz_eilrahc            | 12    |
 | kz_holmu1             | 2     |
+| kz_hypothermia        | 3     |
 | kz_kiwidesecration    | 840   |
 | kz_lastwork_p1        | 3     |
 | kz_lastwork_p2        | 3     |
