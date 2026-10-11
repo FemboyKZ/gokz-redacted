@@ -4,8 +4,6 @@ SM Plugin to redact explicit images in GOKZ maps
 
 ## Maps
 
-Total: 1652 textures, 1611 unique images
-
 | Map Name              | Count |
 | --------------------- | ----- |
 | bkz_cakewalk          | 9     |
