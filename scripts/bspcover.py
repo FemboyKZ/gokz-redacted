@@ -309,7 +309,11 @@ def main():
         mats = xxx_materials(map_dir)
         if not mats:
             continue
-        bsp = BSP(f"maps/{map_dir.name}.bsp")
+        bsp_path = Path(f"maps/{map_dir.name}.bsp")
+        if not bsp_path.exists():
+            print(f"{map_dir.name}: no bsp in maps/, config left as it is")
+            continue
+        bsp = BSP(bsp_path)
         notes = Counter()
         found = []
         surfaces, walls = covers(bsp, mats)
