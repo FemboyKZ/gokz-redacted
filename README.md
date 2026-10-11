@@ -10,7 +10,7 @@ Repeats: pictures another listed map has too.
 Wasted: explicit textures / whole map.
 
 | Map Name                | Count | Repeats | Wasted                   |
-| :---------------------- | :---: | :-----: | ------------------------ |
+| :---------------------- | :---: | :-----: | :----------------------- |
 | bkz_cakewalk            |    9  |    0    |   1.6 /  79.0 MB ( 2.0%) |
 | kz_basics_b02           |    8  |    0    |   2.9 /  53.8 MB ( 5.5%) |
 | kz_bible_black          |    4  |    0    |   0.7 /  36.6 MB ( 1.8%) |
