@@ -1,6 +1,6 @@
 # GOKZ Redacted
 
-SM Plugin to redact explicit images in GOKZ maps
+SM Plugin to redact explicit or suggestive images in GOKZ maps
 
 ## Maps
 
