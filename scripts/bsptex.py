@@ -3,7 +3,8 @@
     python -m scripts.bsptex maps/*.bsp   (from the repo root)
         ->   scripts/out/<map>/textures.tsv, scripts/out/<map>/img/*.png
 
-Sort the thumbnails into img/xxx and img/fine for bspcover.py; a rerun leaves sorted ones in place.
+Sort the thumbnails into img/xxx and img/fine for bspcover.py,
+then move the map's folder into scripts/out/checked/. A rerun leaves sorted ones in place.
 
 Thumbnails are named "<usage>,<vtf path with ',' for '/'>.png", '%' ',' ';'
 %XX-escaped, plus a ";frames" sheet for animated textures.
@@ -54,7 +55,9 @@ def analyse(bsp_path, out_root):
     pak_names = {norm(n): n for n in pak.namelist()}
     rows, vtf_usage = usage(bsp)
 
-    out = out_root / Path(bsp_path).stem
+    out = out_root / "checked" / Path(bsp_path).stem
+    if not out.is_dir():
+        out = out_root / Path(bsp_path).stem
     (out / "img").mkdir(parents=True, exist_ok=True)
     sorted_into = {png.name: png.parent for png in (out / "img").glob("*/*.png")}
 

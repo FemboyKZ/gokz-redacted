@@ -2,7 +2,7 @@
 
     python -m scripts.bspcover   (from the repo root)
 
-scripts/out/<map>/img/xxx + maps/<map>.bsp
+scripts/out/[checked/]<map>/img/xxx + maps/<map>.bsp
     ->   addons/sourcemod/configs/gokz-redacted/<map>.cfg
 
 One block per cover, read by gokz-redacted.sp:
@@ -305,7 +305,9 @@ def fmt(values):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for map_dir in sorted(p for p in SORTED.iterdir() if p.is_dir()):
+    # A map's folder sits in scripts/out while being sorted, then in checked/.
+    tables = [*SORTED.glob("*/textures.tsv"), *SORTED.glob("checked/*/textures.tsv")]
+    for map_dir in sorted((t.parent for t in tables), key=lambda p: p.name):
         mats = xxx_materials(map_dir)
         if not mats:
             continue
