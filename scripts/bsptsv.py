@@ -107,9 +107,14 @@ def usage(bsp):
 
 
 if __name__ == "__main__":
-    paths = [p for arg in sys.argv[1:] for p in sorted(glob.glob(arg))]
-    if not paths:
+    if len(sys.argv) < 2:
         sys.exit(__doc__)
+    paths = []
+    for arg in sys.argv[1:]:
+        found = sorted(glob.glob(arg))
+        if not found:
+            print(f"{arg}: not found", file=sys.stderr)
+        paths += found
     out = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
     out.writerow(["map"] + HEADER)
     for p in paths:
